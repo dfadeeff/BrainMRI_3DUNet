@@ -1,0 +1,17 @@
+# Ignore the .idea folder (for JetBrains IDEs like PyCharm)
+.idea/
+
+# Ignore compiled Python files
+__pycache__/
+*.pyc
+
+# Ignore virtual environment directory if it's inside the project
+venv/
+.env/
+
+# Ignore any other build artifacts
+*.log
+*.gz
+*.zip
+*.tar.gz
+.DS_Store
