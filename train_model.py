@@ -33,6 +33,7 @@ def main():
     train_loader = DataLoader(train_dataset, batch_size=1, shuffle=True, num_workers=4)
     test_loader = DataLoader(test_dataset, batch_size=1, shuffle=False, num_workers=4)
 
+    torch.save(test_indices, 'test_indices.pth')
     device = torch.device("cpu")
     print("Using CPU for training")
 

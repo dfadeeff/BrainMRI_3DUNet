@@ -3,24 +3,25 @@ import numpy as np
 import matplotlib.pyplot as plt
 from model import UNet3D
 from dataset import BrainMRIDataset
-from torch.utils.data import DataLoader, Subset
+from torch.utils.data import DataLoader
+from sklearn.model_selection import train_test_split
 
 def inference_and_visualize():
-    # Load the trained model
-    model = UNet3D(in_channels=3, out_channels=1)
-    model.load_state_dict(torch.load('unet3d_model.pth'))
-    model.eval()
-
     # Load the full dataset
     root_dir = '../../data/PKG - UCSF-PDGM-v3-20230111/UCSF-PDGM-v3/'
     full_dataset = BrainMRIDataset(root_dir=root_dir)
 
-    # Load the test indices
-    test_indices = torch.load('test_indices.pth')
+    # Recreate the train/test split using the same parameters as in train_model.py
+    _, test_indices = train_test_split(list(range(len(full_dataset))), test_size=0.2, random_state=42)
 
-    # Create the test dataset using the saved indices
-    test_dataset = Subset(full_dataset, test_indices)
+    # Create the test dataset
+    test_dataset = torch.utils.data.Subset(full_dataset, test_indices)
     test_loader = DataLoader(test_dataset, batch_size=1, shuffle=False)
+
+    # Load the trained model
+    model = UNet3D(in_channels=3, out_channels=1)
+    model.load_state_dict(torch.load('unet3d_model.pth'))
+    model.eval()
 
     # Get a single test sample
     test_sample = next(iter(test_loader))
@@ -42,7 +43,7 @@ def inference_and_visualize():
     # Input modalities
     for i in range(3):
         axes[0, i].imshow(input_np[i, slice_idx, :, :], cmap='gray')
-        axes[0, i].set_title(f'Input Modality {i+1}')
+        axes[0, i].set_title(f'Input Modality {i + 1}')
         axes[0, i].axis('off')
 
     # Target
