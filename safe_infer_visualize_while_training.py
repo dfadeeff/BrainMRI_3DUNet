@@ -25,11 +25,20 @@ def inference_and_visualize():
 
     # Get a single test sample
     test_sample = next(iter(test_loader))
-    input_modalities, target = test_sample
+    input_modalities, _ = test_sample
+
+    # Select only the first 3 modalities (T1ce, T2, FLAIR) as input
+    input_modalities = input_modalities[:, :3, :, :, :]
+    target = test_sample[0][:, 3, :, :, :]  # T1 as target
+
+    print(f"Input shape: {input_modalities.shape}")
+    print(f"Target shape: {target.shape}")
 
     # Perform inference
     with torch.no_grad():
         output = model(input_modalities)
+
+    print(f"Output shape: {output.shape}")
 
     # Convert tensors to numpy arrays
     input_np = input_modalities.squeeze().numpy()
@@ -41,14 +50,15 @@ def inference_and_visualize():
     slice_idx = input_np.shape[1] // 2  # Middle slice
 
     # Input modalities
+    modality_names = ['T1ce', 'T2', 'FLAIR']
     for i in range(3):
         axes[0, i].imshow(input_np[i, slice_idx, :, :], cmap='gray')
-        axes[0, i].set_title(f'Input Modality {i + 1}')
+        axes[0, i].set_title(f'Input: {modality_names[i]}')
         axes[0, i].axis('off')
 
-    # Target
+    # Target (T1)
     axes[1, 1].imshow(target_np[slice_idx, :, :], cmap='gray')
-    axes[1, 1].set_title('Target')
+    axes[1, 1].set_title('Target: T1')
     axes[1, 1].axis('off')
 
     # Output
