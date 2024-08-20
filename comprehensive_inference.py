@@ -8,6 +8,7 @@ from sklearn.model_selection import train_test_split
 from tqdm import tqdm
 import os
 import torch.nn as nn
+import json
 
 
 def ensure_dir(directory):
@@ -33,6 +34,9 @@ def inference_and_visualize():
 
     criterion = nn.MSELoss()
 
+    total_loss = 0
+    patient_losses = {}
+
     for i, test_sample in enumerate(tqdm(test_loader, desc="Processing patients")):
         patient_id = test_indices[i]
 
@@ -57,6 +61,9 @@ def inference_and_visualize():
         # Calculate loss
         loss = criterion(output, target).item()
         print(f"Loss: {loss}")
+
+        total_loss += loss
+        patient_losses[patient_id] = loss
 
         # Convert tensors to numpy arrays
         input_np = input_modalities.squeeze().numpy()
@@ -123,6 +130,18 @@ def inference_and_visualize():
         plt.suptitle(f'Patient ID: {patient_id}, Loss: {loss:.4f}')
         plt.savefig(os.path.join(output_dir, f'inference_results_patient_{patient_id}.png'))
         plt.close()
+
+    # Calculate and print average loss
+    avg_loss = total_loss / len(test_loader)
+    print(f"\nAverage Loss: {avg_loss:.4f}")
+
+    # Save patient losses and average loss to a JSON file
+    results = {
+        "patient_losses": patient_losses,
+        "average_loss": avg_loss
+    }
+    with open(os.path.join(output_dir, 'inference_results.json'), 'w') as f:
+        json.dump(results, f, indent=4)
 
 
 if __name__ == '__main__':
